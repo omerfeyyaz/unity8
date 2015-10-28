@@ -1,0 +1,201 @@
+Building Unity 8
+================
+
+Only Ubuntu 14.04 (trusty) is supported as a developement environment.
+
+download source
+---------------
+- create a parent folder to not pollute your setup. so that you can have different unity
+  branches there (trunk, WIP etc)
+
+  $ mkdir ~/unity8
+
+- fetch Unity 8 source
+  $ sudo apt-get install bzr
+  $ bzr branch lp:unity8 ~/unity8/trunk
+  $ cd ~/unity8/trunk
+
+install dependencies
+--------------------
+If its your first time, install build dependencies
+
+$ cd ~/unity8/trunk
+$ ./build.sh --setup
+
+  this will:
+  - install the required dependencies to build, as well as run on the desktop
+  - it should also install unity-scope-home and unity-lens-application which
+    are technically "recommends", not strict dependencies
+
+build Unity 8
+-------------
+
+$ cd ~/unity8/trunk
+$ ./build.sh
+
+You may also rebuild with the -c for clean, which just deletes the build
+directory.
+
+
+Running Unity 8 on your desktop
+===============================
+
+run the Unity 8 shell
+---------------------
+$ cd ~/unity8/trunk
+$ ./run.sh
+
+Options can be passed to test the lock screen
+$ ./run.sh -p OR -k
+
+-p is for pin lock, for which the default prompt answer is "1234"
+-k is for keylock passphrase, for which the default prompt answer is "password"
+
+Notes
+-----
+- to navigate, utilize the mouse left button as you would your finger
+- to get the translations work, currently you have to do make install to
+  put the *.mo files into correct structure. We'll look for a better solution
+  later.
+  $ cd builddir; make install
+- if you wish to populate contacts
+  $ sudo apt-get install gir1.2-ebook-1.2
+  $ manage-address-book.py create
+  this will:
+    - Create an EDS address book
+    - Populate the address book with sample data
+
+
+Running Unity 8 on devices
+==========================
+- Ubuntu Touch builds are currently only available in 14.04 flavour
+- supported hardware should match one of those listed here
+  https://wiki.ubuntu.com/Touch/Devices#Running_fine
+- follow the Ubuntu Touch install instructions for your chosen device
+  https://wiki.ubuntu.com/Touch/Install
+- make sure your device is connected to a network
+- also make sure you have your SSH key in ~/.ssh/id_rsa.pub (or install one
+  on the device yourself)
+
+$ cd ~/unity/trunk
+$ ./run_on_device.sh --setup
+  this will:
+  - install your public SSH key on the device
+  - install the needed dependencies
+
+$ ./run_on_device.sh
+  this will:
+  - rsync the code to the device
+  - build on the device
+  - replace the running shell
+
+Options can be passed to test the lock screen
+$ ./run_on_device.sh -p OR -k
+
+-p is for pin lock, for which the default prompt answer is "1234"
+-k is for keylock passphrase, for which the default prompt answer is "password"
+
+Notes
+-----
+- using adb over TCP has some advantages, Google will be of help here
+  - NOTE: this is not yet available for flipped images
+  - TL;DR: `adb tcpip 5555; adb connect $your_device_ip`
+  - you can persist the above via `adb shell setprop persist.adb.tcp.port 5555`
+  - it's unsafe - anyone can connect to your device
+  - with TCP the Nexus 10 doesn't drop the adb connection when locking
+    the screen
+- exporting ANDROID_SERIAL=$your_device_serial or
+  ANDROID_SERIAL=$your_device_ip:5555 will make adb not complain about
+  multiple devices
+- you can export TARGET_IP=$your_device_ip TARGET_SSH_PORT=22 for run_on_device.sh
+  to not use adb forwarding - useful if you use multiple devices
+- using Ninja (package ninja-build - run_on_device.sh -s installs this now)
+  will improve build times (especially in the nothing-to-build case)
+
+
+Coding guidelines
+=================
+The work-in-progress coding guidelines are available under:
+https://launchpad.net/canonical-client-development-guidelines
+
+
+Development Environment
+=======================
+QtCreator (available via the Software Center) is the best IDE to hack on
+Unity 8.
+
+If using VIM, make sure you install some syntax highlighting for QML, like
+https://github.com/peterhoeg/vim-qml
+
+Running tests
+=============
+
+Tests are run from the build directory (which will be ./builddir if you used
+the ./build.sh script).
+
+To run the tests that do not require any graphical capability and therefore
+are pretty fast run:
+
+$ make test
+
+or, alternatively:
+
+$ ctest
+
+To run all graphical tests, which can take a couple of minutes:
+
+$ make uitests
+
+To run the tests for a single component/class:
+
+$ make testComponentName
+
+So, for the DragHandle component that would be:
+
+$ make testDragHandle
+
+To run the tests for a single component/class under gdb (so you can catch SEGFAULTS)
+
+$ make gdbtestComponentName
+
+To run a single test function of a single component/class:
+
+$ make testComponentName FUNCTION="TestCaseName::functionName"
+
+To run a test application that allow you to manually test or to simply try out
+a given component:
+
+$ make tryComponentName
+
+So to try out, for instance, the DragHandle component, you would do:
+
+$ make tryDragHandle
+
+NB: Manual test or interation doesn't make sense for all components or classes,
+particularly the non-graphical ones. In such cases no "tryFoo" make target is
+provided.
+
+Running autopilot tests
+=======================
+
+Autopilot tests are run from the build directory (which will be ./builddir if you used
+the ./build.sh script).
+
+$ make autopilot
+
+If you want you can also run tests individually, for that you need to install first,
+otherwise the tests will run on the system-installed version
+
+$ make install
+
+To see the list of existing autopilot tests you can do
+
+$ PYTHONPATH=../tests/autopilot autopilot3 list unity8
+
+And then run a single test with
+
+$ PYTHONPATH=../tests/autopilot autopilot3 run unity8.some.very.long.test.name
+
+or run them all with
+
+$ PYTHONPATH=../tests/autopilot autopilot3 run unity8

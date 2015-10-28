@@ -1,0 +1,4 @@
+module Unity.Notifications
+plugin MockNotificationsPlugin
+typeinfo Notifications.qmltypes
+

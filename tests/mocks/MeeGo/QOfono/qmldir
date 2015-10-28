@@ -1,0 +1,3 @@
+module MeeGo.QOfono
+plugin MockQOfono
+OfonoSimManager 0.2 MockOfonoSimManager.qml

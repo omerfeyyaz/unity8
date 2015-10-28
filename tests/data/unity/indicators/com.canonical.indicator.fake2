@@ -1,0 +1,10 @@
+[Indicator Service]
+Name=indicator-fake2
+ObjectPath=/com/canonical/indicator/fake2
+Position=0
+
+[test1]
+ObjectPath=/com/canonical/indicator/fake2/test1
+
+[test2]
+ObjectPath=/com/canonical/indicator/fake2/test2

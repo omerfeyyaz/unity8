@@ -1,0 +1,3 @@
+module GSettings
+plugin FakeGSettingsQml
+typeinfo GSettings.qmltypes
